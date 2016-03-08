@@ -3,6 +3,7 @@ package com.tomagoyaky.apkeditor.axmleditor.editor;
 import com.tomagoyaky.ShellAddScriptTool.common.Logger;
 import com.tomagoyaky.apkeditor.axmleditor.decode.AXMLDoc;
 import com.tomagoyaky.apkeditor.axmleditor.decode.BTagNode;
+import com.tomagoyaky.apkeditor.axmleditor.decode.BTagNode.Attribute;
 import com.tomagoyaky.apkeditor.axmleditor.decode.BXMLNode;
 import com.tomagoyaky.apkeditor.axmleditor.decode.StringBlock;
 import com.tomagoyaky.apkeditor.axmleditor.utils.TypedValue;
@@ -28,24 +29,44 @@ public class ApplicationInfoEditor extends BaseEditor<ApplicationInfoEditor.Edit
         return NODE_APPLICATION;
     }
 
+    private void addStringValue(BTagNode node, StringBlock stringBlock, int xx_Index, int xx_Value, String xx){
+
+		// 判断是否含有android:name属性
+		BTagNode.Attribute nameAttribute = null;
+		BTagNode.Attribute[] attrArr = node.getAttribute();
+		for (int i = 0; i < attrArr.length; i++) {
+
+			String attrName = stringBlock.getStringFor(attrArr[i].mName);
+			if(attrName != null && attrName.contains("name")){
+				nameAttribute = attrArr[i];
+			}
+		}
+		if(nameAttribute == null){
+			// 创建name属性
+			BTagNode.Attribute name_attr = new BTagNode.Attribute(
+					namespace, editorInfo.name_Index,
+					TypedValue.TYPE_STRING);
+			node.setAttribute(name_attr);
+		}
+		node.setAttrStringForKey(xx_Index, xx_Value);
+		stringBlock.setString(xx_Value, xx);
+    }
+    
     @Override
 	protected void editor() {
 		BTagNode node = (BTagNode) findNode();
 		if (node != null) {
 			final StringBlock stringBlock = doc.getStringBlock();
 			if (editorInfo.label != null) {
+				addStringValue(node, stringBlock, editorInfo.label_Index, editorInfo.label_Value, editorInfo.label);
 				Logger.LOGW("[Editor] label:" + editorInfo.label);
-				node.setAttrStringForKey(editorInfo.label_Index, editorInfo.label_Value);
-				stringBlock.setString(editorInfo.label_Value, editorInfo.label);
 			}
 			if (editorInfo.name != null) {
+				addStringValue(node, stringBlock, editorInfo.name_Index, editorInfo.name_Value, editorInfo.name);
 				Logger.LOGW("[Editor] name:" + editorInfo.name);
-				node.setAttrStringForKey(editorInfo.name_Index, editorInfo.name_Value);
-				stringBlock.setString(editorInfo.name_Value, editorInfo.name);
 			}
 			if (editorInfo.debuggable != -1) {
-				Logger.LOGW("[Editor] debuggable:" + (editorInfo.debuggable == 1 ? "true" : "false"));
-				if(stringBlock.containsString(EditorInfo.DEBUGGABLE)){
+				if(!stringBlock.containsString(EditorInfo.DEBUGGABLE)){
 					BTagNode.Attribute debug_attr = new BTagNode.Attribute(
 							namespace, editorInfo.debuggable_Index,
 							TypedValue.TYPE_STRING);
@@ -62,6 +83,7 @@ public class ApplicationInfoEditor extends BaseEditor<ApplicationInfoEditor.Edit
                     }
 				}
 				stringBlock.setString(editorInfo.debuggable_Value, editorInfo.debuggable == 1 ? "true" : "false");
+				Logger.LOGW("[Editor] debuggable:" + (editorInfo.debuggable == 1 ? "true" : "false"));
 			}
 		}
 	}
@@ -88,14 +110,14 @@ public class ApplicationInfoEditor extends BaseEditor<ApplicationInfoEditor.Edit
 		}
         if(editorInfo.debuggable != -1){
 			if(sb.containsString(EditorInfo.DEBUGGABLE)){
-				editorInfo.debuggable_Index = sb.addString(EditorInfo.DEBUGGABLE);
-                editorInfo.debuggable_Value = sb.putString(editorInfo.debuggable == 1 ? "true" : "false");
-			}else{
 	            editorInfo.debuggable_Index = sb.getStringMapping(EditorInfo.DEBUGGABLE);
 	            editorInfo.debuggable_Value = sb.putString(editorInfo.debuggable == 1 ? "true" : "false");
+			}else{
+				editorInfo.debuggable_Index = sb.addString(EditorInfo.DEBUGGABLE);
+                editorInfo.debuggable_Value = sb.putString(editorInfo.debuggable == 1 ? "true" : "false");
 			}
         }
-}
+    }
 
 
     public static class EditorInfo {
@@ -140,5 +162,4 @@ public class ApplicationInfoEditor extends BaseEditor<ApplicationInfoEditor.Edit
 			return mEditorInfo;
 		}
 	}
-
 }

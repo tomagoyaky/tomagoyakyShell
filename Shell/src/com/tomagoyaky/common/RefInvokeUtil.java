@@ -157,7 +157,7 @@ public class RefInvokeUtil {
 	 */
 	public static void setFieldObject(String classname, String filedName, Object obj, Object filedVaule){
 		try {
-			Class obj_class = Class.forName(classname);
+			Class<?> obj_class = Class.forName(classname);
 			Field field = obj_class.getDeclaredField(filedName);
 			field.setAccessible(true);
 			field.set(obj, filedVaule);

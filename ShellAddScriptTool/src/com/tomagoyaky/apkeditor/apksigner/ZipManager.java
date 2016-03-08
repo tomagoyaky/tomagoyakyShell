@@ -1,10 +1,13 @@
 package com.tomagoyaky.apkeditor.apksigner;
 
+import com.tomagoyaky.ShellAddScriptTool.Start;
+import com.tomagoyaky.ShellAddScriptTool.common.Constants;
 import com.tomagoyaky.ShellAddScriptTool.common.Logger;
 import com.tomagoyaky.apkeditor.utils.FileUtils;
 import com.tomagoyaky.apkeditor.utils.IOUtils;
 
 import java.io.*;
+import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
@@ -111,6 +114,24 @@ public class ZipManager {
 		}
 		return ret;
 	}
+	
+	@SuppressWarnings("resource")
+	public static boolean hasEntry(File file, String entryName){
+		boolean flag = false;
+		ZipFile zipFile = null;
+		try {
+			zipFile = new ZipFile(file);
+			final ZipEntry entry = zipFile.getEntry(entryName);
+			if(entry != null){
+				flag = true;
+			}else{
+				flag = false;
+			}
+		}catch(Exception ex){
+			ex.printStackTrace();
+		}
+		return flag;
+	}
 
 	/**
 	 * 提取文件
@@ -142,7 +163,7 @@ public class ZipManager {
 				} finally {
 					IOUtils.closeQuietly(fos, stream);
 				}
-				Logger.LOGD("[Zip:Extra] " + entryFiles[i] + " (->) " + recFiles[i]);
+				if(Start.Debuggable.ZIP_OPT_INFO)  Logger.LOGD("[Zip:Extra] " + entryFiles[i].replace(Constants.dir_workplace, "{dir_workplace}") + " (->) " + recFiles[i].replace(Constants.dir_workplace, "{dir_workplace}"));
 			}
 		} catch (IOException e) {
 			throw e;
@@ -189,7 +210,7 @@ public class ZipManager {
 					for (int i = 0; i < size; i++) {
 						if (srcFiles[i].equals(name)) {
 							rp = i;
-							Logger.LOGD("[Zip:Replace] " + zipFile.getName() + " (\\) " + name);
+							if(Start.Debuggable.ZIP_OPT_INFO)  Logger.LOGD("[Zip:Replace] " + zipFile.getName() + " (\\) " + name);
 							break;
 						}
 					}
@@ -269,7 +290,7 @@ public class ZipManager {
 					for (String file : files) {
 						if (file.equals(name)) {
 							toBeDeleted = true;
-							Logger.LOGD("[Zip:Delete] " + zipFile.getName() + " (-) " + file);
+							if(Start.Debuggable.ZIP_OPT_INFO)  Logger.LOGD("[Zip:Delete] " + zipFile.getName() + " (-) " + file.replace(Constants.dir_workplace, "{dir_workplace}"));
 							break;
 						}
 					}
@@ -329,7 +350,7 @@ public class ZipManager {
 				for (String file : files) {
 					if (file.equals(name)) {
 						toBeDeleted = true;
-						Logger.LOGD("[Zip:Delete] " + zipFile.getName() + " (-) " + file);
+						if(Start.Debuggable.ZIP_OPT_INFO)  Logger.LOGD("[Zip:Delete] " + zipFile.getName() + " (-) " + file.replace(Constants.dir_workplace, "{dir_workplace}"));
 						break;
 					}
 				}
@@ -394,7 +415,7 @@ public class ZipManager {
 			}
 			zin.close();
 			zout.finish();
-			Logger.LOGD("[Zip:Delete] " + zipFile.getName() + " (-) " + dir);
+			if(Start.Debuggable.ZIP_OPT_INFO)  Logger.LOGD("[Zip:Delete] " + zipFile.getName() + " (-) " + dir.replace(Constants.dir_workplace, "{dir_workplace}"));
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw e;
@@ -437,6 +458,7 @@ public class ZipManager {
                 while ((len = fis2.read(buff)) > 0) {
                     zout.write(buff, 0, len);
                 }
+    			if(Start.Debuggable.ZIP_OPT_INFO)  Logger.LOGD("[Zip:Add] " + entryName + " (+) " + mapFile.replace(Constants.dir_workplace, "{dir_workplace}"));
             } catch (IOException e) {
                 throw e;
             } finally {
@@ -475,4 +497,39 @@ public class ZipManager {
 		return new byte[4096];
 	}
 
+	// 解压一个目录
+	public static void extraDirtoryZipEntry(File apkFile, String entryValue,
+			String outPath) {
+		
+		ZipInputStream zin = null;
+		File outPathFile = null;
+		try {
+			outPathFile = new File(outPath);
+			if(outPathFile.exists()){
+				outPathFile.mkdirs();
+			}
+			zin = new ZipInputStream(new FileInputStream(apkFile));
+			ZipEntry entry = zin.getNextEntry();
+			while(entry != null){
+				String entryName = entry.getName();
+
+				if(entryName != null && entryName.startsWith("lib") && entryName.endsWith(".so") && entryName.toCharArray()[3] == '/'){
+					if(outPath.toLowerCase().endsWith(File.separator + "lib")){
+						outPath = outPath.replace(File.separator + "lib", "");
+					}
+					String targetPath = outPath + File.separator + entryName.replace("/", File.separator);
+					new File(targetPath).getParentFile().mkdirs();
+					extraZipEntry(apkFile, 
+						new String[] { entryName },
+						new String[] { targetPath }
+					);
+				}
+				entry = zin.getNextEntry();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			IOUtils.closeQuietly(zin);
+		}
+	}
 }

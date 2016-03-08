@@ -19,6 +19,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        
+		<meta-data
+			android:name="APPLICATION_CLASS_NAME"
+			android:value="com.tomagoyaky.librarysecurity.SecurityApplication"
+			>
+		</meta-data>
     </application>
 
 </manifest>

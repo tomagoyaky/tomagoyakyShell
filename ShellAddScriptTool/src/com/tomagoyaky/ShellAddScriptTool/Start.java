@@ -24,6 +24,17 @@ import com.tomagoyaky.apkeditor.utils.Base64;
 
 public class Start {
 
+	public static class Debuggable{
+
+		public static final boolean CMD_ENABLE = true;
+		public static final boolean FUNCTION_TRACE = true;
+		public static final boolean APK_INFO = true;
+		public static final boolean ZIP_OPT_INFO = true; // 压缩操作
+		
+	};
+	public static int Type_Default = 0; 
+	public static int Type_Dynamic_Loading = 1; 
+	
 	private static void Init() throws Exception {
 		Date date = new Date();
 		DateFormat format = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -34,18 +45,30 @@ public class Start {
 		Logger.LOGD("[mkdir] " + Constants.dir_workplace);
 		FileUtil.MakeSureIsExist(Constants.dir_workplace);
 
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "DemoActivity.apk"; // java.lang.NullPointerException at com.tomagoyaky.apkeditor.axmleditor.decode.StringBlock.prepare(StringBlock.java:212)
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "LibrarySecurity.apk";  //  Failure [INSTALL_PARSE_FAILED_MANIFEST_MALFORMED]
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "385bd20b5a5d6f8f697e2f294cb77f8d.apk"; // StringBlock.prepare error
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "e39b4212f3e8ef39acb0a709c5ad76d7.apk";
+		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.yingyonghui.market_2904_30052763.apk";
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.sogou.health.apk";
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.stealthcotper.networktools.apk";
 //		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "tantan.apk";
-		Constants.ShellTarget.apkFilePath = "F:\\Tomagoyaky\\workplace20160002\\ShellTarget\\bin\\ShellTarget.apk";
+//		Constants.ShellTarget.apkFilePath = "F:\\Tomagoyaky\\workplace20160002\\ShellTarget\\bin\\ShellTarget.apk";
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + ".." + File.separator + "ShellTarget" + File.separator + "bin" + File.separator + "ShellTarget.apk";
+		FileUtil.MakeSureIsExist(Constants.ShellTarget.apkFilePath);
+		
 		Constants.Shell.privateKey = getPrivateKey();
 		Constants.Shell.sigPrefix = getSigPrefix();
 		Constants.Shell.dir_ShellProject = Constants.dir_pwd + File.separator + ".." + File.separator + "Shell";
-		Constants.Shell.file_classes_dex = Constants.Shell.dir_ShellProject + File.separator + "bin" + File.separator + "classes.dex";
+		Constants.Shell.file_local_classes_dex = Constants.Shell.dir_ShellProject + File.separator + "bin" + File.separator + "classes.dex";
+		Constants.Shell.file_local_modify_classes_dex =  Constants.dir_pwd + File.separator + "modify_classes.dex";
 		FileUtil.MakeSureIsExist(Constants.Shell.dir_ShellProject);
-		FileUtil.MakeSureIsExist(Constants.Shell.file_classes_dex);
+		FileUtil.MakeSureIsExist(Constants.Shell.file_local_classes_dex);
 	}
 
 	public static void main(String[] args) {
 		try {
+			Start.Type_Default = Start.Type_Dynamic_Loading;
 			CopyRight.show();
 			Init();
 
@@ -96,13 +119,6 @@ public class Start {
     private static String getSigPrefix() throws IOException, URISyntaxException {
     	File file = new File(Constants.dir_resource + File.separator + Constants.Shell.rsaFileName);
         FileInputStream fis = FileUtils.openInputStream(file);
-        /**
-         * RSA-keysize signature-length
-         # 512         64
-         # 1024        128
-         # 2048        256
-         */
-
         int same = (int) (file.length() - 64);  //当前-keysize 512
 
         byte[] buff = new byte[same];

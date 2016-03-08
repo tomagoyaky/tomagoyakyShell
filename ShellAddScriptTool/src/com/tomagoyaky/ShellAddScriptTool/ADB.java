@@ -11,7 +11,7 @@ public class ADB {
 		/**
 		 * 解决方案二:读取并解析文件/data/system/packages.xml
 		 * */
-		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		StackTraceUtil.__trace__();
 		String retVal = CMD.execute("adb shell su -c \"ls /data/app/\"", Constants.dir_pwd, 0);
 		String[] retValArray = retVal.split("\r\r\n");
 		boolean flag = false;
@@ -24,31 +24,31 @@ public class ADB {
 	}
 
 	public static void WaitForDevice(){
-		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		StackTraceUtil.__trace__();
 		Logger.LOGW("wait-for-device ...");
 		CMD.execute("adb wait-for-device", Constants.dir_pwd, 0, CMD.nullOS);
 	}
 	
 	public static void ReInstall(String filePath_sign) {
-		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		StackTraceUtil.__trace__();
 		String retVal = CMD.execute("adb install -r \"" + filePath_sign + "\"", Constants.dir_pwd, 0);
 		Logger.LOGD(retVal.replace("\r\r\n", "\n"));
 	}
 
 	public static void Running(String packageName, String launcherActivity) {
-		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		StackTraceUtil.__trace__();
 		String retVal = CMD.execute("adb shell su -c \"" + "am start -n " + packageName + "/" + launcherActivity + "\"", Constants.dir_pwd, 0);
 		Logger.LOGD(retVal.replace("\r\r\n", "\n"));
 	}
 
 	public static void Uninstall(String packageName) {
-		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		StackTraceUtil.__trace__();
 		String retVal = CMD.execute("adb uninstall \"" + packageName + "\"", Constants.dir_pwd, 0);
 		Logger.LOGD(retVal.replace("\r\r\n", "\n"));
 	}
 
 	public static void Install(Apk apk) {
-		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		StackTraceUtil.__trace__();
 		int trycount = 1;
 		while(true){
 			String retVal = CMD.execute("adb install \"" + apk.getFilePath_sign() + "\"", Constants.dir_pwd, 0);

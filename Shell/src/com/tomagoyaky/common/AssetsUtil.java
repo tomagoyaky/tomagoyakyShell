@@ -24,6 +24,7 @@ public class AssetsUtil {
             }
             fileOutputStream.close();
             inputStream.close();
+        	Logger.LOGW(fileName + " -> " + file.getAbsolutePath());
         } catch (Exception e) {
             e.printStackTrace();
         }

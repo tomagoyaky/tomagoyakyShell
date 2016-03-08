@@ -58,7 +58,7 @@ public class Apk {
 	
 	public Apk(String _apkFilePath) throws Exception {
 
-		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		StackTraceUtil.__trace__();
 		this.apkFilePath = _apkFilePath;
 		if(apkFilePath.endsWith(".apk")){
 			this.fileName 			= new File(apkFilePath).getName();
@@ -114,6 +114,10 @@ public class Apk {
 					System.exit(-3);
 				}
 			} while (false);
+			
+			if(Start.Debuggable.APK_INFO){
+				Logger.LOGD(this.toString());
+			}
 		}
 	}
 	
@@ -459,5 +463,47 @@ public class Apk {
 
 	public void setUses_features(ArrayList<String> uses_features) {
 		this.uses_features = uses_features;
+	}
+
+	@Override
+	public String toString() {
+		return "Apk [packageName=" + packageName + "\n dir_decompile="
+				+ dir_decompile + "\n application=" + application
+				+ "\n apkFilePath=" + apkFilePath + "\n fileName=" + fileName
+				+ "\n filePath_sign=" + filePath_sign + "\n filePath_unsign="
+				+ filePath_unsign + "\n filePath_androidManifest_xml="
+				+ filePath_androidManifest_xml
+				+ "\n filePath_androidManifest_txt="
+				+ filePath_androidManifest_txt + "\n VersionCode=" + VersionCode
+				+ "\n VersionName=" + VersionName + "\n LauncherActivity="
+				+ LauncherActivity + "\n LabelName=" + LabelName
+				+ "\n minSdkVersion=" + minSdkVersion + "\n targetSdkVersion="
+				+ targetSdkVersion + "\n parentPath=" + parentPath + "\n icon="
+				+ icon + "\n eabi=" + eabi + "\n activitys=" + activitys
+				+ "\n permissions=" + permissions + "\n receivers=" + receivers
+				+ "\n services=" + services + "\n meta_datas=" + meta_datas
+				+ "\n uses_features=" + uses_features + "\n getPackageName()="
+				+ getPackageName() + "\n getDir_decompile()="
+				+ getDir_decompile() + "\n getApplication()=" + getApplication()
+				+ "\n getApkFilePath()=" + getApkFilePath() + "\n getFileName()="
+				+ getFileName() + "\n getFilePath_sign()=" + getFilePath_sign()
+				+ "\n getFilePath_unsign()=" + getFilePath_unsign()
+				+ "\n getFilePath_androidManifest_xml()="
+				+ getFilePath_androidManifest_xml()
+				+ "\n getFilePath_androidManifest_txt()="
+				+ getFilePath_androidManifest_txt() + "\n getVersionCode()="
+				+ getVersionCode() + "\n getVersionName()=" + getVersionName()
+				+ "\n getLauncherActivity()=" + getLauncherActivity()
+				+ "\n getLabelName()=" + getLabelName()
+				+ "\n getMinSdkVersion()=" + getMinSdkVersion()
+				+ "\n getTargetSdkVersion()=" + getTargetSdkVersion()
+				+ "\n getParentPath()=" + getParentPath() + "\n getIcon()="
+				+ getIcon() + "\n getEabi()=" + getEabi() + "\n getActivitys()="
+				+ getActivitys() + "\n getPermissions()=" + getPermissions()
+				+ "\n getReceivers()=" + getReceivers() + "\n getServices()="
+				+ getServices() + "\n getMeta_datas()=" + getMeta_datas()
+				+ "\n getUses_features()=" + getUses_features()
+				+ "\n getClass()=" + getClass() + "\n hashCode()=" + hashCode()
+				+ "\n toString()=" + super.toString() + "]";
 	}
 }

@@ -25,7 +25,8 @@ public class Constants {
         
 		public static String privateKey;
 		public static String sigPrefix;
-		public static String file_classes_dex = "";
+		public static String file_local_classes_dex = "";
+		public static String file_local_modify_classes_dex = "";
 		public static final String jar_apktool = dir_pwd + File.separator + "lib" + File.separator + "AXMLPrinter2.jar";
 		public static final String jar_AXMLPrinter2 = dir_pwd + File.separator + "lib" + File.separator + "AXMLPrinter2.jar";
 		public static final String ShellApplicationName = "com.tomagoyaky.shell.ProxyApplication";
@@ -33,6 +34,9 @@ public class Constants {
 	}
 
 	public static class ShellTarget{
+		
 		public static String apkFilePath = "";
+		public static String dir_local_lib = dir_workplace + File.separator + "lib";
+		public static String file_local_classes_dex = dir_workplace + File.separator + "org_classes.dex";
 	}
 }

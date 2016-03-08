@@ -11,6 +11,8 @@ import org.apache.commons.exec.ExecuteException;
 import org.apache.commons.exec.ExecuteWatchdog;
 import org.apache.commons.exec.PumpStreamHandler;
 
+import com.tomagoyaky.ShellAddScriptTool.Start;
+
 public class CMD {
 
 	public static OutputStream nullOS = new OutputStream() {
@@ -40,7 +42,7 @@ public class CMD {
 		ExecuteWatchdog watchdog = new ExecuteWatchdog(60000);
 		executor.setWatchdog(watchdog);
 		try {
-			Logger.LOGD("[CMD] " + cmdlineStr
+			if(Start.Debuggable.CMD_ENABLE) Logger.LOGD("[CMD] " + cmdlineStr
 					.replace(Constants.dir_workplace, "{dir_workplace}")
 					.replace(Constants.dir_Shell_project, "{dir_Shell_project}")
 					.replace(Constants.dir_workplace, "{dir_workplace}")
@@ -79,7 +81,7 @@ public class CMD {
 		ExecuteWatchdog watchdog = new ExecuteWatchdog(60000);
 		executor.setWatchdog(watchdog);
 		try {
-			Logger.LOGD("[CMD] " + cmdlineStr
+			if(Start.Debuggable.CMD_ENABLE) Logger.LOGD("[CMD] " + cmdlineStr
 					.replace(Constants.dir_workplace, "{dir_workplace}")
 					.replace(Constants.dir_Shell_project, "{dir_Shell_project}")
 					.replace(Constants.dir_workplace, "{dir_workplace}")

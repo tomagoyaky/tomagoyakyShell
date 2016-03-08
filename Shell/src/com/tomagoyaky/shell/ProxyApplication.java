@@ -1,6 +1,7 @@
 package com.tomagoyaky.shell;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,8 +20,7 @@ import com.tomagoyaky.common.Constants;
 import com.tomagoyaky.common.Logger;
 import com.tomagoyaky.common.RefInvokeUtil;
 import com.tomagoyaky.common.StackTraceUtil;
-
-import dalvik.system.BaseDexClassLoader;
+import dalvik.system.DexClassLoader;
 
 public class ProxyApplication extends Application{
 
@@ -33,15 +33,19 @@ public class ProxyApplication extends Application{
 	
 	@Override
 	protected void attachBaseContext(Context baseContext) {
+		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
 		super.attachBaseContext(baseContext);
 
 		try {
-			Logger.LOGD(StackTraceUtil.getMethodWithClassName());
 			Logger.LOGI("0x01 释放dex文件");
 			ReleaseDexFiles(baseContext);
 			
 			Logger.LOGI("0x02 加载dex文件");
 			DexClassLoaderWithJava(baseContext);
+			
+			Logger.LOGI("0x03 恢复Application");
+			String appClassName = getOldApplication(this, Constants.ClassPath.application_meta_data);
+			ResumeApplicationWithJava(appClassName);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -49,12 +53,11 @@ public class ProxyApplication extends Application{
 
 	@Override
 	public void onCreate() {
-		Logger.LOGI("0x03 恢复Application");
-		String appClassName = getOldApplication(this, Constants.ClassPath.application_meta_data);
-		ResumeApplicationWithJava(appClassName);
+		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
+		
 	}
 	
-	private void ReleaseDexFiles(Context baseContext) {
+	private void ReleaseDexFiles(Context baseContext) throws IOException {
 		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
 
 		odex = baseContext.getDir(Constants.payload_odex, 	MODE_PRIVATE);
@@ -64,26 +67,61 @@ public class ProxyApplication extends Application{
 		this.dexPath 	= dex.getAbsolutePath() + "/" + Constants.dexFileName;
 		this.odexPath 	= odex.getAbsolutePath();
 		this.libPath 	= libs.getAbsolutePath();
-		
+
 		releaseAssetsFile(baseContext, Constants.dexFileName, dex.getAbsolutePath());
-//		releaseAssetsFile(baseContext, "libshell.so", 	libs.getAbsolutePath());
+		releaseAssetsDirtory(baseContext, "lib/armeabi", libPath);
 	}
 
 	@SuppressWarnings("unchecked")
 	private void DexClassLoaderWithJava(Context baseContext) throws ClassNotFoundException {
 		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
-		BaseDexClassLoader dexLoader = new BaseDexClassLoader(
-				this.dexPath, 
-				odex,
-				this.libPath, 
-				baseContext.getClassLoader());
-		Logger.LOGI("设置mClassLoader");
+
 		Object currentActivityThread = RefInvokeUtil.invokeStaticMethod(Constants.ClassPath.android_app_ActivityThread, "currentActivityThread", new Class[] {}, new Object[] {});
 		String packageName = baseContext.getPackageName();
 		ArrayMap<String, WeakReference<?>> mPackages = (ArrayMap<String, WeakReference<?>>) 
 				RefInvokeUtil.getFieldObject(Constants.ClassPath.android_app_ActivityThread, currentActivityThread, "mPackages");
 		WeakReference<?> wr = (WeakReference<?>) mPackages.get(packageName);
-		RefInvokeUtil.setFieldObject(Constants.ClassPath.android_app_LoadedApk, "mClassLoader", wr.get(), dexLoader);
+		DexClassLoader dexLoader = new DexClassLoader(
+				this.dexPath + File.pathSeparator + dex.getAbsolutePath(),  // 使用File.pathSeparator分割，可以定义多个路径
+				this.odexPath,
+				this.libPath, 
+				(ClassLoader) RefInvokeUtil.getFieldObject(Constants.ClassPath.android_app_LoadedApk, wr.get(), "mClassLoader")
+		);
+		Logger.LOGI("dexPath:" 	+ this.dexPath);
+		Logger.LOGI("odexPath:" + this.odexPath);
+		Logger.LOGI("libPath:" 	+ this.libPath);
+		
+		Logger.LOGI("设置mClassLoader");
+//		RefInvokeUtil.setFieldObject(Constants.ClassPath.android_app_LoadedApk, "mClassLoader", wr.get(), dexLoader);
+		
+		// 测试
+//		try {
+//			Class<?> appClass = dexLoader.loadClass("com.yingyonghui.market.AppChinaApplication");
+//			Logger.LOGW("find appClass:" + appClass);
+//		} catch (Exception e) {
+//			Logger.LOGE("test error:" + e.getMessage());
+//		}
+//		
+//		try {
+//			Class<?> LauncherClass = dexLoader.loadClass("android.support.v4.app.FragmentActivity");  
+//			Logger.LOGW("find LauncherClass:" + LauncherClass);
+//		} catch (Exception e) {
+//			Logger.LOGE("test error:" + e.getMessage());
+//		}
+//
+//		try {
+//			Class<?> LauncherClass = dexLoader.loadClass("com.yingyonghui.market.AppChinaFragmentActivity");  
+//			Logger.LOGW("find LauncherClass:" + LauncherClass);
+//		} catch (Exception e) {
+//			Logger.LOGE("test error:" + e.getMessage());
+//		}
+//		
+//		try {
+//			Class<?> LauncherClass = dexLoader.loadClass("com.yingyonghui.market.activity.SplashActivity");  
+//			Logger.LOGW("find LauncherClass:" + LauncherClass);
+//		} catch (Exception e) {
+//			Logger.LOGE("test error:" + e.getMessage());
+//		}
 	}
 
 	/**
@@ -124,6 +162,10 @@ public class ProxyApplication extends Application{
 			Application newApplication = (Application) RefInvokeUtil.invokeMethod(Constants.ClassPath.android_app_LoadedApk, "makeApplication", loadedApkInfo,
 				new Class[] { boolean.class, Instrumentation.class },
 				new Object[] { false, null });
+			if(newApplication == null){
+				Logger.LOGE("makeApplication() error.");
+				return;
+			}
 			RefInvokeUtil.setFieldObject("android.app.ActivityThread", "mInitialApplication", currentActivityThread, newApplication);
 
 			Logger.LOGI("设置上下文");
@@ -151,13 +193,33 @@ public class ProxyApplication extends Application{
 		}else{
 			targetFile.delete();
 		}
+		if(!targetFile.getParentFile().exists())
+			targetFile.getParentFile().mkdirs();
 		AssetsUtil.CopyAssertJarToFile(baseContext, fileName, targetFile);
 		if(targetFile.exists())
 			Logger.LOGI("filePath:" + FilePath);
 		else
 			Logger.LOGE("Not exist, filePath:" + FilePath);
 	}
+	
+	/**
+	 * 释放assets目录下的文件夹到目标目录
+	 * baseContext, "assets/lib", libPath
+	 * */
+	private void releaseAssetsDirtory(Context baseContext, String source, String target){
+		String[] files;
+        try {
+            // 获得Assets一共有几多文件
+            files = this.getResources().getAssets().list(source);
+            for (int i = 0; i < files.length; i++) {
+            	releaseAssetsFile(baseContext, source + "/" + files[i], target); // 这里的分割符为assets目录间隔
+			}
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+	}
 
+	@SuppressWarnings("unused")
 	private String getOldApplication(Context context, String keyName){
 		String value = null;
 		ApplicationInfo ai = null;
