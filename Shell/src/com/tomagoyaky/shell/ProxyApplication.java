@@ -20,6 +20,7 @@ import com.tomagoyaky.common.Constants;
 import com.tomagoyaky.common.Logger;
 import com.tomagoyaky.common.RefInvokeUtil;
 import com.tomagoyaky.common.StackTraceUtil;
+
 import dalvik.system.DexClassLoader;
 
 public class ProxyApplication extends Application{
@@ -39,9 +40,9 @@ public class ProxyApplication extends Application{
 		try {
 			Logger.LOGI("0x01 释放dex文件");
 			ReleaseDexFiles(baseContext);
-			
+
 			Logger.LOGI("0x02 加载dex文件");
-			DexClassLoaderWithJava(baseContext);
+			DexClassLoaderWithJava(this);
 			
 			Logger.LOGI("0x03 恢复Application");
 			String appClassName = getOldApplication(this, Constants.ClassPath.application_meta_data);
@@ -54,7 +55,6 @@ public class ProxyApplication extends Application{
 	@Override
 	public void onCreate() {
 		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
-		
 	}
 	
 	private void ReleaseDexFiles(Context baseContext) throws IOException {
@@ -72,12 +72,12 @@ public class ProxyApplication extends Application{
 		releaseAssetsDirtory(baseContext, "lib/armeabi", libPath);
 	}
 
-	@SuppressWarnings("unchecked")
 	private void DexClassLoaderWithJava(Context baseContext) throws ClassNotFoundException {
 		Logger.LOGD(StackTraceUtil.getMethodWithClassName());
 
 		Object currentActivityThread = RefInvokeUtil.invokeStaticMethod(Constants.ClassPath.android_app_ActivityThread, "currentActivityThread", new Class[] {}, new Object[] {});
 		String packageName = baseContext.getPackageName();
+		@SuppressWarnings("unchecked")
 		ArrayMap<String, WeakReference<?>> mPackages = (ArrayMap<String, WeakReference<?>>) 
 				RefInvokeUtil.getFieldObject(Constants.ClassPath.android_app_ActivityThread, currentActivityThread, "mPackages");
 		WeakReference<?> wr = (WeakReference<?>) mPackages.get(packageName);
@@ -92,7 +92,7 @@ public class ProxyApplication extends Application{
 		Logger.LOGI("libPath:" 	+ this.libPath);
 		
 		Logger.LOGI("设置mClassLoader");
-//		RefInvokeUtil.setFieldObject(Constants.ClassPath.android_app_LoadedApk, "mClassLoader", wr.get(), dexLoader);
+		RefInvokeUtil.setFieldObject(Constants.ClassPath.android_app_LoadedApk, "mClassLoader", wr.get(), dexLoader);
 		
 		// 测试
 //		try {
@@ -104,20 +104,6 @@ public class ProxyApplication extends Application{
 //		
 //		try {
 //			Class<?> LauncherClass = dexLoader.loadClass("android.support.v4.app.FragmentActivity");  
-//			Logger.LOGW("find LauncherClass:" + LauncherClass);
-//		} catch (Exception e) {
-//			Logger.LOGE("test error:" + e.getMessage());
-//		}
-//
-//		try {
-//			Class<?> LauncherClass = dexLoader.loadClass("com.yingyonghui.market.AppChinaFragmentActivity");  
-//			Logger.LOGW("find LauncherClass:" + LauncherClass);
-//		} catch (Exception e) {
-//			Logger.LOGE("test error:" + e.getMessage());
-//		}
-//		
-//		try {
-//			Class<?> LauncherClass = dexLoader.loadClass("com.yingyonghui.market.activity.SplashActivity");  
 //			Logger.LOGW("find LauncherClass:" + LauncherClass);
 //		} catch (Exception e) {
 //			Logger.LOGE("test error:" + e.getMessage());

@@ -24,17 +24,17 @@ import java.util.Arrays;
  * Data extracted from a DEX file.
  */
 public class DexData {
-    private RandomAccessFile mDexFile;
+	public RandomAccessFile mDexFile;
     public HeaderItem mHeaderItem;
-    private String[] mStrings;              // strings from string_data_*
-    private TypeIdItem[] mTypeIds;
-    private ProtoIdItem[] mProtoIds;
-    private FieldIdItem[] mFieldIds;
-    private MethodIdItem[] mMethodIds;
-    private ClassDefItem[] mClassDefs;
+    public String[] mStrings;              // strings from string_data_*
+    public TypeIdItem[] mTypeIds;
+    public ProtoIdItem[] mProtoIds;
+    public FieldIdItem[] mFieldIds;
+    public MethodIdItem[] mMethodIds;
+    public ClassDefItem[] mClassDefs;
 
-    private byte tmpBuf[] = new byte[4];
-    private boolean isBigEndian = false;
+    public byte tmpBuf[] = new byte[4];
+    public boolean isBigEndian = false;
 
     /**
      * Constructs a new DexData for this file.
@@ -65,7 +65,7 @@ public class DexData {
     /**
      * Verifies the given magic number.
      */
-    private static boolean verifyMagic(byte[] magic) {
+    public static boolean verifyMagic(byte[] magic) {
         return Arrays.equals(magic, HeaderItem.DEX_FILE_MAGIC) ||
             Arrays.equals(magic, HeaderItem.DEX_FILE_MAGIC_API_13);
     }
@@ -73,7 +73,7 @@ public class DexData {
     /**
      * Parses the interesting bits out of the header.
      */
-    void parseHeaderItem() throws IOException {
+    public void parseHeaderItem() throws IOException {
         mHeaderItem = new HeaderItem();
 
         seek(0);
@@ -319,7 +319,7 @@ public class DexData {
     /**
      * Returns the class name, given an index into the type_ids table.
      */
-    private String classNameFromTypeIndex(int idx) {
+    public String classNameFromTypeIndex(int idx) {
         return mStrings[mTypeIds[idx].descriptorIdx];
     }
 
@@ -327,7 +327,7 @@ public class DexData {
      * Returns an array of method argument type strings, given an index
      * into the proto_ids table.
      */
-    private String[] argArrayFromProtoIndex(int idx) {
+    public String[] argArrayFromProtoIndex(int idx) {
         ProtoIdItem protoId = mProtoIds[idx];
         String[] result = new String[protoId.types.length];
 
@@ -342,7 +342,7 @@ public class DexData {
      * Returns a string representing the method's return type, given an
      * index into the proto_ids table.
      */
-    private String returnTypeFromProtoIndex(int idx) {
+    public String returnTypeFromProtoIndex(int idx) {
         ProtoIdItem protoId = mProtoIds[idx];
         return mStrings[mTypeIds[protoId.returnTypeIdx].descriptorIdx];
     }
@@ -388,7 +388,7 @@ public class DexData {
      * Runs through the list of field references, inserting external
      * references into the appropriate ClassRef.
      */
-    private void addExternalFieldReferences(ClassRef[] sparseRefs) {
+    public void addExternalFieldReferences(ClassRef[] sparseRefs) {
         for (int i = 0; i < mFieldIds.length; i++) {
             if (!mTypeIds[mFieldIds[i].classIdx].internal) {
                 FieldIdItem fieldId = mFieldIds[i];
@@ -405,7 +405,7 @@ public class DexData {
      * Runs through the list of method references, inserting external
      * references into the appropriate ClassRef.
      */
-    private void addExternalMethodReferences(ClassRef[] sparseRefs) {
+    public void addExternalMethodReferences(ClassRef[] sparseRefs) {
         for (int i = 0; i < mMethodIds.length; i++) {
             if (!mTypeIds[mMethodIds[i].classIdx].internal) {
                 MethodIdItem methodId = mMethodIds[i];
@@ -429,21 +429,21 @@ public class DexData {
     /**
      * Seeks the DEX file to the specified absolute position.
      */
-    void seek(int position) throws IOException {
+    public void seek(int position) throws IOException {
         mDexFile.seek(position);
     }
 
     /**
      * Fills the buffer by reading bytes from the DEX file.
      */
-    void readBytes(byte[] buffer) throws IOException {
+    public void readBytes(byte[] buffer) throws IOException {
         mDexFile.readFully(buffer);
     }
 
     /**
      * Reads a single signed byte value.
      */
-    byte readByte() throws IOException {
+    public byte readByte() throws IOException {
         mDexFile.readFully(tmpBuf, 0, 1);
         return tmpBuf[0];
     }
@@ -451,7 +451,7 @@ public class DexData {
     /**
      * Reads a signed 16-bit integer, byte-swapping if necessary.
      */
-    short readShort() throws IOException {
+    public short readShort() throws IOException {
         mDexFile.readFully(tmpBuf, 0, 2);
         if (isBigEndian) {
             return (short) ((tmpBuf[1] & 0xff) | ((tmpBuf[0] & 0xff) << 8));
@@ -463,7 +463,7 @@ public class DexData {
     /**
      * Reads a signed 32-bit integer, byte-swapping if necessary.
      */
-    int readInt() throws IOException {
+    public int readInt() throws IOException {
         mDexFile.readFully(tmpBuf, 0, 4);
 
         if (isBigEndian) {
@@ -474,6 +474,24 @@ public class DexData {
                    ((tmpBuf[2] & 0xff) << 16) | ((tmpBuf[3] & 0xff) << 24);
         }
     }
+    
+    /**
+     * add by tomagoyaky 2016:03:08
+     * Reads a signed 32-bit integer, byte-swapping if necessary.
+     */
+    public int writeInt(int stringID) throws IOException {
+		return stringID;
+//        mDexFile.readFully(tmpBuf, 0, 4);
+//
+//        if (isBigEndian) {
+//            return (tmpBuf[3] & 0xff) | ((tmpBuf[2] & 0xff) << 8) |
+//                   ((tmpBuf[1] & 0xff) << 16) | ((tmpBuf[0] & 0xff) << 24);
+//        } else {
+//            return (tmpBuf[0] & 0xff) | ((tmpBuf[1] & 0xff) << 8) |
+//                   ((tmpBuf[2] & 0xff) << 16) | ((tmpBuf[3] & 0xff) << 24);
+//        }
+    }
+    
 
     /**
      * Reads a variable-length unsigned LEB128 value.  Does not attempt to
@@ -481,7 +499,7 @@ public class DexData {
      *
      * @throws EOFException if we run off the end of the file
      */
-    int readUnsignedLeb128() throws IOException {
+    public int readUnsignedLeb128() throws IOException {
         int result = 0;
         byte val;
 
@@ -501,7 +519,7 @@ public class DexData {
      * utf16_size and seek back if we get it wrong, but seeking backward
      * may cause the underlying implementation to reload I/O buffers.
      */
-    String readString() throws IOException {
+    public String readString() throws IOException {
         int utf16len = readUnsignedLeb128();
         byte inBuf[] = new byte[utf16len * 3];      // worst case
         int idx;
@@ -555,7 +573,7 @@ public class DexData {
      * each instead of a simple integer.  (Could use a parallel array, but
      * since this is a desktop app it's not essential.)
      */
-    static class TypeIdItem {
+    public static class TypeIdItem {
         public int descriptorIdx;       // index into string_ids
 
         public boolean internal;        // defined within this DEX file?
@@ -564,7 +582,7 @@ public class DexData {
     /**
      * Holds the contents of a proto_id_item.
      */
-    static class ProtoIdItem {
+    public static class ProtoIdItem {
         public int shortyIdx;           // index into string_ids
         public int returnTypeIdx;       // index into type_ids
         public int parametersOff;       // file offset to a type_list
@@ -575,7 +593,7 @@ public class DexData {
     /**
      * Holds the contents of a field_id_item.
      */
-    static class FieldIdItem {
+    public static class FieldIdItem {
         public int classIdx;            // index into type_ids (defining class)
         public int typeIdx;             // index into type_ids (field type)
         public int nameIdx;             // index into string_ids
@@ -584,7 +602,7 @@ public class DexData {
     /**
      * Holds the contents of a method_id_item.
      */
-    static class MethodIdItem {
+    public static class MethodIdItem {
         public int classIdx;            // index into type_ids
         public int protoIdx;            // index into proto_ids
         public int nameIdx;             // index into string_ids
@@ -596,7 +614,7 @@ public class DexData {
      * We don't really need a class for this, but there's some stuff in
      * the class_def_item that we might want later.
      */
-    static class ClassDefItem {
+    public static class ClassDefItem {
         public int classIdx;            // index into type_ids
     }
 }

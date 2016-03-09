@@ -33,7 +33,8 @@ public class Start {
 		
 	};
 	public static int Type_Default = 0; 
-	public static int Type_Dynamic_Loading = 1; 
+	public static int Type_Dynamic_Loading = 1;  // 进行dex的动态加载
+	public static int Type_Modify_Classes = 2;   // 进行dex畸形加密 (揽括了前一步的所有操作)
 	
 	private static void Init() throws Exception {
 		Date date = new Date();
@@ -45,30 +46,33 @@ public class Start {
 		Logger.LOGD("[mkdir] " + Constants.dir_workplace);
 		FileUtil.MakeSureIsExist(Constants.dir_workplace);
 
+		/*
+		 * 错误:had used a different Lorg/osgi/framework/BundleActivator; during pre-verification
+		 * 解决方式：文件只能引用不能编译到dex文件中,否则会出现类冲突的情况
+		 * */
 //		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "DemoActivity.apk"; // java.lang.NullPointerException at com.tomagoyaky.apkeditor.axmleditor.decode.StringBlock.prepare(StringBlock.java:212)
 //		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "LibrarySecurity.apk";  //  Failure [INSTALL_PARSE_FAILED_MANIFEST_MALFORMED]
 //		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "385bd20b5a5d6f8f697e2f294cb77f8d.apk"; // StringBlock.prepare error
-//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "e39b4212f3e8ef39acb0a709c5ad76d7.apk";
-		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.yingyonghui.market_2904_30052763.apk";
-//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.sogou.health.apk";
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "e39b4212f3e8ef39acb0a709c5ad76d7.apk";  
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.yingyonghui.market_2904_30052763.apk";
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.sogou.health.apk";  //  Class ref in pre-verified class resolved to unexpected implementation 原因是Shell工程引用了Android4.2这个引用库
 //		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "com.stealthcotper.networktools.apk";
-//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "tantan.apk";
-//		Constants.ShellTarget.apkFilePath = "F:\\Tomagoyaky\\workplace20160002\\ShellTarget\\bin\\ShellTarget.apk";
-//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + ".." + File.separator + "ShellTarget" + File.separator + "bin" + File.separator + "ShellTarget.apk";
+//		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + "target" + File.separator + "tantan.apk";  // so files load error
+		Constants.ShellTarget.apkFilePath = Constants.dir_pwd + File.separator + ".." + File.separator + "ShellTarget" + File.separator + "bin" + File.separator + "ShellTarget.apk";
 		FileUtil.MakeSureIsExist(Constants.ShellTarget.apkFilePath);
 		
 		Constants.Shell.privateKey = getPrivateKey();
 		Constants.Shell.sigPrefix = getSigPrefix();
 		Constants.Shell.dir_ShellProject = Constants.dir_pwd + File.separator + ".." + File.separator + "Shell";
 		Constants.Shell.file_local_classes_dex = Constants.Shell.dir_ShellProject + File.separator + "bin" + File.separator + "classes.dex";
-		Constants.Shell.file_local_modify_classes_dex =  Constants.dir_pwd + File.separator + "modify_classes.dex";
+		Constants.Shell.file_local_modify_classes_dex =  Constants.dir_workplace + File.separator + "modify_classes.dex";
 		FileUtil.MakeSureIsExist(Constants.Shell.dir_ShellProject);
 		FileUtil.MakeSureIsExist(Constants.Shell.file_local_classes_dex);
 	}
 
 	public static void main(String[] args) {
 		try {
-			Start.Type_Default = Start.Type_Dynamic_Loading;
+			Start.Type_Default = Start.Type_Modify_Classes;  // 控制程序执行的功能.
 			CopyRight.show();
 			Init();
 
