@@ -347,6 +347,36 @@ public class DexData {
         return mStrings[mTypeIds[protoId.returnTypeIdx].descriptorIdx];
     }
 
+    public ClassRef[] getClassRefs(){
+        // create a sparse array of ClassRef that parallels mTypeIds
+        ClassRef[] sparseRefs = new ClassRef[mTypeIds.length];
+
+        // create entries for all externally-referenced classes
+        int count = 0;
+        for (int i = 0; i < mTypeIds.length; i++) {
+            if (!mTypeIds[i].internal) {
+                sparseRefs[i] =
+                    new ClassRef(mStrings[mTypeIds[i].descriptorIdx]);
+                count++;
+            }
+        }
+
+        // add fields and methods to the appropriate class entry
+        addExternalFieldReferences(sparseRefs);
+        addExternalMethodReferences(sparseRefs);
+
+        // crunch out the sparseness
+        ClassRef[] classRefs = new ClassRef[count];
+        int idx = 0;
+        for (int i = 0; i < mTypeIds.length; i++) {
+            if (sparseRefs[i] != null)
+                classRefs[idx++] = sparseRefs[i];
+        }
+
+        assert idx == count;
+
+        return classRefs;
+    }
     /**
      * Returns an array with all of the class references that don't
      * correspond to classes in the DEX file.  Each class reference has

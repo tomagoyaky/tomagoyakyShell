@@ -1,9 +1,6 @@
 package com.tomagoyaky.ShellAddScriptTool;
 
 import java.io.File;
-
-
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -22,7 +19,7 @@ import com.tomagoyaky.ShellAddScriptTool.common.FileUtil;
 import com.tomagoyaky.ShellAddScriptTool.common.Logger;
 import com.tomagoyaky.apkeditor.utils.Base64;
 
-public class Start {
+public class Start{
 
 	public static class Debuggable{
 
@@ -66,11 +63,14 @@ public class Start {
 		Constants.Shell.dir_ShellProject = Constants.dir_pwd + File.separator + ".." + File.separator + "Shell";
 		Constants.Shell.file_local_classes_dex = Constants.Shell.dir_ShellProject + File.separator + "bin" + File.separator + "classes.dex";
 		Constants.Shell.file_local_modify_classes_dex =  Constants.dir_workplace + File.separator + "modify_classes.dex";
+		Constants.file_ChecksumDataConfigFile = Constants.dir_pwd + File.separator + "config" + File.separator + "checksum.cfg"; // config
+		Constants.file_ChecksumDataSaveFile = Constants.dir_pwd + File.separator + "config" + File.separator + "checksum.rst";  //result
 		FileUtil.MakeSureIsExist(Constants.Shell.dir_ShellProject);
 		FileUtil.MakeSureIsExist(Constants.Shell.file_local_classes_dex);
 	}
 
 	public static void main(String[] args) {
+		
 		try {
 			Start.Type_Default = Start.Type_Modify_Classes;  // 控制程序执行的功能.
 			CopyRight.show();
@@ -87,6 +87,11 @@ public class Start {
 			
 			shell.Analysis(apk);			// 判断apk是否可以进行加壳
 			shell.ModifyManifest(apk);		// 修改AndroidManifest.xml
+			if(shell.PrepareDexFile(apk)){
+				shell.ModifyDexFile(apk);		// 修改dex文件
+//				shell.GetChecksumData(apk);		// 从dex文件中筛选出一些类来做校验,并保存在本地
+				shell.GetDexHashCode(apk);
+			}
 			shell.ModifyFileSystem(apk);	// 修改文件系统
 			
 			// 应用压缩业务

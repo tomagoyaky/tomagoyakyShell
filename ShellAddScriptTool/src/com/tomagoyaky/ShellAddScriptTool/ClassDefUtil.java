@@ -33,15 +33,14 @@ public class ClassDefUtil {
 		try {
 			// XXX 加载并解析dex文件
 			Logger.LOGD("parse dex file: " + file_local_classes_dex);
-			RandomAccessFile raf = openInputFile(file_local_classes_dex);
-			DexData dexData = new DexData(raf);
-            dexData.load();
+            DexData dexData = getDexData(file_local_classes_dex);
 
             // 0x01 创建buffer
-	        dex = new Dex(Constants.Shell.file_local_modify_classes_dex);
+	        dex = new Dex();
 	        dexBufferUtil = new Dex.DexBufferUtil(file_local_classes_dex);
 	        dex.dexBufferUtil = dexBufferUtil;
 	        dex.dexData = dexData;
+	        dex.setModifiedDexFileSavePath(Constants.Shell.file_local_modify_classes_dex);
 	        dexBufferUtil.initMinSizeBuffer(dexData);  			//创建dex文件头等信息
             // 0x02 更新数据 (可在这些update 函数里面添加增删改操作)
 	        updateStringPool(dex);
@@ -57,18 +56,18 @@ public class ClassDefUtil {
             long field_num = 0;
             long method_num = 0;
 
-            ClassRef[] externClassRefs = dexData.getExternalReferences();
-        	class_num += externClassRefs.length;
-            for (int i = 0; i < externClassRefs.length; i++) {
+            ClassRef[] classRefs = (ClassRef[])dexData.getExternalReferences();
+        	class_num += classRefs.length;
+            for (int i = 0; i < classRefs.length; i++) {
 
-                ClassRef ref = externClassRefs[i];
+            	ClassRef ref = classRefs[i];
 	            FieldRef[] fields = ref.getFieldArray();
 	            MethodRef[] methods = ref.getMethodArray();
 	            
             	field_num += fields.length;
             	method_num += methods.length;
                 if(ref.getName().startsWith("Lcom" /*apk.getPackageName().replace(".", "/")*/) || ref.getName().contains("yingyonghui")){
-                    Logger.LOGW(ref.getName());
+//                    Logger.LOGW(ref.getName());
                 }
 //              Logger.LOGW(ref.getName());
             
@@ -101,6 +100,14 @@ public class ClassDefUtil {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static DexData getDexData(String file_local_classes_dex) throws IOException {
+
+		RandomAccessFile raf = openInputFile(file_local_classes_dex);
+		DexData dexData = new DexData(raf);
+        dexData.load();
+		return dexData;
 	}
 
 	private static void updateMapPool(Dex dex) {
@@ -139,7 +146,7 @@ public class ClassDefUtil {
 		// 测试替换一个字符串索引
 		int baseStringOffset = dex.dexBufferUtil.dexHeader.stringIdsOff;
         for (int i = 0; i < dex.dexData.mStrings.length; i++) {
-        	Logger.LOGD(dex.dexData.mStrings[i]);
+//        	Logger.LOGD(dex.dexData.mStrings[i]);
         	baseStringOffset += dex.dexData.mStrings[i].length();
 		}
 	}
